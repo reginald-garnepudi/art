@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Balls</title>
+    <style>
+      body{
+        background: black; 
+      }
+    </style>
+</head>
+<body>
+  <svg></svg>
+
+  <script src='d3.min.js'></script>
+  <script>
+
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+    var colorScale = d3.scaleOrdinal(d3.schemeCategory20b);
+    var maxCircles = 100;
+
+    var svg = d3.select("svg")
+      .attr("height", height)
+      .attr("width", width);
+
+    var filters = [];
+    var defs = svg.append("defs");
+    for (var i = 7; i >= 0; i--) {
+      var filter = defs.append("filter")
+        .attr("id", "blur"+i)
+      .append("feGaussianBlur")
+        .attr("stdDeviation", i)
+
+      filters.push(filter)
+    }
+
+    var g = svg.append('g')
+
+    setInterval(draw, 100);
+    //setInterval(remove, 110);
+
+    function draw(){
+
+      if(g.selectAll("circle").nodes().length < maxCircles){
+
+        x = Math.floor(d3.randomUniform(2, width)());
+        y = Math.floor(d3.randomUniform(2, height)());
+        radius = Math.floor(d3.randomUniform(2, 100)());
+        color = colorScale(d3.randomUniform(0, 19)());
+
+        blurValue = Math.floor(d3.randomUniform(0,8)());
+
+        circle = g.append("circle")
+          .attr('cx', x)
+          .attr('cy', y)
+          .attr('r', radius)
+          .attr("fill", color)
+          .attr("filter", function(d){
+            filterNumber = Math.floor(d3.randomUniform(0, 7)());
+            return "url(#blur"+filterNumber+")";
+          })
+          .style("opacity", 0);
+
+        // Increase the opacity
+        circle.transition().duration(5000)
+        .style("opacity", 0.8)
+        .attr("cx", function(){
+            moveDistance = d3.randomUniform(-width/2, width/2)()
+            return parseInt(circle.attr("cx")) + moveDistance;
+          })
+
+        //Remove the circle
+
+        circle.transition().delay(3000).duration(2000)
+          .attr('r', 0)
+          .style("opacity", 0.0)
+          .on('end', function(d){
+            this.remove();
+            //circle = undefined;
+          });
+
+        // Move the circle horizontally by 50 px
+        // circle.transition()
+        //   .attr("cx", function(){
+        //     return 300;
+        //   })
+
+        //circle.remove();
+        //circle = undefined;
+      }
+      
+    }
+
+    function remove(){
+      
+
+      circle = g.select("circle")
+        .transition().duration(100)
+        .attr('r', 0)
+        .style("opacity", 0.0);
+
+      circle.remove();
+      circle = undefined;
+      
+
+    }
+
+    function blur() {
+      filter.attr("stdDeviation", this.value / 5);
+    }
+
+  </script>
+</body>
+</html>
